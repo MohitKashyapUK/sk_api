@@ -17,4 +17,6 @@ app.get("/:name", async (req, res) => {
   const result = results.get(name);
 
   res.send(result);
-})
+});
+
+app.listen(port, () => console.log(`Listening on port ${port}`));
