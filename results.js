@@ -3,8 +3,7 @@ const cheerio = require("cheerio"); // For HTML scraping
 const date = require("./date");
 
 class Results {
-  constructor(name) {
-    this.name = name;
+  constructor() {
     this.init = false;
     this.sk_names = {
       "disawer": 1,
@@ -16,14 +15,14 @@ class Results {
   }
 
   async initialize() {
-    if (this.init) {
+    if (!this.init) {
       const now = date(); // current date object
       const month = now.getMonth(); // current month from date object
       const current_month = (month + 1).toString().padStart(2, "0"); // 01 ~ 12, Agar digit single hai to uske aage zero add kiya ja raha hai aur iski type ko String kiya ja raha hai
       const current_year = now.getFullYear(); // 2023, current year from date object
       // const current_day = now.getDate(); // 1 ~ 31, current day from date object
       // const lastDayOfMonth = new Date(current_year, month + 1, 0).getDate(); // 28 ~ 31, mahine kee aakhri tarikh
-      
+
       const URL = `https://satta-king-fast.com/chart.php?month=${current_month}&year=${current_year}`; // SK URL for scraping SK results
       // const name = req.params.name; // sk name. e.g. faridabad
 
@@ -46,18 +45,22 @@ class Results {
     } else return true;
   }
 
-  get() {
+  get(name) {
     if (!this.init) return false;
 
-    const count = this.sk_names[this.name] || 5;
+    const condition = this.sk_names[name];
+    const rounds = condition || 4;
     const results = {};
+    let i = condition ? rounds - 1 : 0;
 
-    for (let i=1; i<=count; i++) {
-      const condition = count != 5;
-      const name = Object.keys(this.sk_names)[(condition ? this.sk_names[name] : i) - 1];
-      const result = this.current_results_td_doms.eq(condition ? this.sk_names : i).text().trim();
+    while (i < rounds) {
+      i++; // Sabse pahle increase kiya ja raha hai, kyuki first escape karna hai. Aur agar name se access kar rahe hai, to ek baar hi loop chale uske liye bhi increase kiya ja raha hai.
 
-      results[name] = result;
+      const ternary = condition ? this.sk_names[name] : i;
+      const sk_name = Object.keys(this.sk_names)[ternary - 1];
+      const records = this.current_results_td_doms.eq(ternary).text().trim();
+
+      results[sk_name] = records;
     }
 
     return results;
